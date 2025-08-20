@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Building, MapPin, Phone, Mail } from "lucide-react";
+import { ArrowLeft, User, Building, MapPin, Phone, Mail, Loader2, ChevronDown } from "lucide-react";
+import { API_BASE_URL } from "@/config/constants";
 
 const Subcontractor = () => {
   const [formData, setFormData] = useState({
@@ -20,8 +21,51 @@ const Subcontractor = () => {
     experience: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTradeDropdown, setShowTradeDropdown] = useState(false);
+  const [filteredTrades, setFilteredTrades] = useState<string[]>([]);
+  const tradeInputRef = useRef<HTMLInputElement>(null);
+  const tradeDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const predefinedTrades = [
+    "Plumbing",
+    "Electrical",
+    "Carpentry",
+    "Painting",
+    "Roofing",
+    "HVAC",
+    "Concrete",
+    "Steel Work",
+    "Tiling",
+    "Glazing",
+    "Scaffolding",
+    "Excavation",
+    "Landscaping",
+    "Flooring",
+    "Demolition",
+    "Insulation",
+    "Drywall",
+    "Masonry",
+    "Welding",
+    "Waterproofing"
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        tradeDropdownRef.current &&
+        !tradeDropdownRef.current.contains(event.target as Node) &&
+        tradeInputRef.current &&
+        !tradeInputRef.current.contains(event.target as Node)
+      ) {
+        setShowTradeDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -30,19 +74,93 @@ const Subcontractor = () => {
     }));
   };
 
+  const handleTradeInputChange = (value: string) => {
+    handleInputChange("trade", value);
+    
+    // Filter trades based on input
+    const filtered = predefinedTrades.filter(trade =>
+      trade.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredTrades(filtered);
+    
+    if (value.length > 0 && filtered.length > 0) {
+      setShowTradeDropdown(true);
+    } else if (value.length === 0) {
+      setFilteredTrades(predefinedTrades);
+    }
+  };
+
+  const handleTradeInputFocus = () => {
+    setFilteredTrades(predefinedTrades);
+    setShowTradeDropdown(true);
+  };
+
+  const handleTradeSelect = (trade: string) => {
+    handleInputChange("trade", trade);
+    setShowTradeDropdown(false);
+    tradeInputRef.current?.blur();
+  };
+
+  const handleTradeDropdownToggle = () => {
+    if (showTradeDropdown) {
+      setShowTradeDropdown(false);
+    } else {
+      setFilteredTrades(predefinedTrades);
+      setShowTradeDropdown(true);
+      tradeInputRef.current?.focus();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Mock form submission
-    toast({
-      title: "Registration Submitted!",
-      description: "Processing your information...",
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/match-projects`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          full_name: formData.name,
+          company_name: formData.company,
+          trade: formData.trade,
+          location: formData.location,
+          phone_number: formData.phone,
+          email: formData.email,
+          description: formData.experience,
+        }),
+      });
 
-    setTimeout(() => {
-      navigate("/processing");
-    }, 1000);
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const matchingTrades = await response.json();
+
+      toast({
+        title: "Registration Submitted!",
+        description: "Processing your information...",
+      });
+
+      setTimeout(() => {
+        navigate("/subcontractor-results", { 
+          state: { 
+            matchingTrades,
+            userInfo: formData
+          } 
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("Error submitting registration:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch matching projects. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = formData.name && formData.company && formData.trade && formData.location && formData.email;
@@ -57,6 +175,7 @@ const Subcontractor = () => {
             size="sm"
             onClick={() => navigate("/role-selection")}
             className="text-muted-foreground hover:text-foreground"
+            disabled={isSubmitting}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Role Selection
@@ -94,6 +213,7 @@ const Subcontractor = () => {
                     placeholder="John Smith"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -104,6 +224,7 @@ const Subcontractor = () => {
                     placeholder="Smith Plumbing Pty Ltd"
                     value={formData.company}
                     onChange={(e) => handleInputChange("company", e.target.value)}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -113,29 +234,59 @@ const Subcontractor = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="trade">Trade/Specialization *</Label>
-                  <Select value={formData.trade} onValueChange={(value) => handleInputChange("trade", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your trade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="plumbing">Plumbing</SelectItem>
-                      <SelectItem value="electrical">Electrical</SelectItem>
-                      <SelectItem value="carpentry">Carpentry</SelectItem>
-                      <SelectItem value="painting">Painting</SelectItem>
-                      <SelectItem value="roofing">Roofing</SelectItem>
-                      <SelectItem value="hvac">HVAC</SelectItem>
-                      <SelectItem value="concrete">Concrete</SelectItem>
-                      <SelectItem value="steel">Steel Work</SelectItem>
-                      <SelectItem value="tiling">Tiling</SelectItem>
-                      <SelectItem value="glazing">Glazing</SelectItem>
-                      <SelectItem value="scaffolding">Scaffolding</SelectItem>
-                      <SelectItem value="excavation">Excavation</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <div className="relative">
+                      <Input
+                        id="trade"
+                        ref={tradeInputRef}
+                        placeholder="Type your trade or select from list"
+                        value={formData.trade}
+                        onChange={(e) => handleTradeInputChange(e.target.value)}
+                        onFocus={handleTradeInputFocus}
+                        disabled={isSubmitting}
+                        required
+                        className="pr-8"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-2 hover:bg-transparent"
+                        onClick={handleTradeDropdownToggle}
+                        disabled={isSubmitting}
+                      >
+                        <ChevronDown className={`w-4 h-4 transition-transform ${showTradeDropdown ? 'rotate-180' : ''}`} />
+                      </Button>
+                    </div>
+                    
+                    {/* Custom Dropdown */}
+                    {showTradeDropdown && (
+                      <div
+                        ref={tradeDropdownRef}
+                        className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md"
+                      >
+                        {filteredTrades.length > 0 ? (
+                          filteredTrades.map((trade) => (
+                            <div
+                              key={trade}
+                              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => handleTradeSelect(trade)}
+                            >
+                              {trade}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm text-muted-foreground">
+                            No trades found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="location">Location *</Label>
-                  <Select value={formData.location} onValueChange={(value) => handleInputChange("location", value)}>
+                  <Select value={formData.location} onValueChange={(value) => handleInputChange("location", value)} disabled={isSubmitting}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your location" />
                     </SelectTrigger>
@@ -163,6 +314,7 @@ const Subcontractor = () => {
                     placeholder="+61 2 9555 0123"
                     value={formData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-2">
@@ -173,6 +325,7 @@ const Subcontractor = () => {
                     placeholder="john@smithplumbing.com.au"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -186,6 +339,7 @@ const Subcontractor = () => {
                   placeholder="Describe your experience, certifications, and any specializations..."
                   value={formData.experience}
                   onChange={(e) => handleInputChange("experience", e.target.value)}
+                  disabled={isSubmitting}
                   rows={4}
                 />
               </div>
@@ -197,11 +351,52 @@ const Subcontractor = () => {
                 className="w-full"
                 disabled={!isFormValid || isSubmitting}
               >
-                {isSubmitting ? "Submitting..." : "Submit Registration"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Submit Registration"
+                )}
               </Button>
             </form>
           </CardContent>
         </Card>
+
+        {/* Processing Overlay */}
+        {isSubmitting && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <Card className="w-full max-w-md mx-4 shadow-2xl">
+              <CardContent className="pt-8 pb-8">
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="relative">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <User className="w-6 h-6 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">Processing Registration</h3>
+                    <p className="text-sm text-muted-foreground">
+                      We're analyzing your profile and matching you with relevant trade opportunities...
+                    </p>
+                  </div>
+                  
+                  <div className="w-full space-y-2">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Matching trades...</span>
+                      <span>Please wait</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div className="bg-primary h-2 rounded-full animate-pulse transition-all duration-1000" 
+                           style={{width: "75%"}}></div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
