@@ -26,6 +26,7 @@ interface MatchedProject {
 const SubcontractorResults = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showAllTrades, setShowAllTrades] = useState(false);
   const [matchingTrades, setMatchingTrades] = useState<MatchedProject[]>([]);
   const [userInfo, setUserInfo] = useState<{name: string; trade: string; location: string} | null>(null);
 
@@ -178,7 +179,7 @@ const SubcontractorResults = () => {
                     <Building className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <div className="font-medium">Primary Trade</div>
-                      <div className="text-muted-foreground">{trade.matched_trade}</div>
+                      <div className="text-muted-foreground">{trade.matched_trade.charAt(0).toUpperCase() + trade.matched_trade.slice(1)}</div>
                     </div>
                   </div>
                   
@@ -207,18 +208,26 @@ const SubcontractorResults = () => {
                   </div>
                 </div>
 
-                {/*{trade.trades && trade.trades.length > 0 && (
+                {trade.trades && trade.trades.length > 0 && (
                   <div className="mb-4">
                     <div className="text-sm font-medium text-muted-foreground mb-2">All Required Trades:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {trade.trades.map((t, i) => (
+                    <div className="flex flex-wrap items-center gap-1">
+                      {trade.trades.slice(0, showAllTrades ? trade.trades.length : 3).map((t, i) => (
                         <Badge key={i} variant="secondary" className="text-xs">
                           {t}
                         </Badge>
                       ))}
+                      {trade.trades.length > 3 && !showAllTrades && (
+                        <button
+                          onClick={() => setShowAllTrades(true)}
+                          className="text-xs text-blue-500 hover:text-blue-700 ml-1"
+                        >
+                          ...
+                        </button>
+                      )}
                     </div>
                   </div>
-                )}*/}
+                )}
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
