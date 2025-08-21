@@ -36,9 +36,9 @@ const RoleSelection = () => {
               >
                 <div className="text-left">
                   <div className="font-semibold text-lg mb-2">Get Started as Builder</div>
-                  <div className="text-sm text-muted-foreground">
+                  {/*<div className="text-sm text-muted-foreground">
                     Import your database and discover top trades
-                  </div>
+                  </div>*/}
                 </div>
               </Button>
             </CardContent>
@@ -63,9 +63,9 @@ const RoleSelection = () => {
               >
                 <div className="text-left">
                   <div className="font-semibold text-lg mb-2">Get Started as Subcontractor</div>
-                  <div className="text-sm text-muted-foreground">
+                  {/*<div className="text-sm text-muted-foreground">
                     Register and find matching trade opportunities
-                  </div>
+                  </div>*/}
                 </div>
               </Button>
             </CardContent>
