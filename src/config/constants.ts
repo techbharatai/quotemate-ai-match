@@ -69,6 +69,5 @@ export const ALLOWED_ORIGINS = [
   'http://127.0.0.1:3000',  // Common React alternative
   'http://localhost:8080',  // Other common ports
   'http://127.0.0.1:8080',
-  'https://quotemate-ai.netlify.app', //it it needed here ?
   getApiBaseUrl()
 ].filter(Boolean); // Remove any empty strings

@@ -29,26 +29,18 @@ const Subcontractor = () => {
   const { toast } = useToast();
 
   const predefinedTrades = [
-    "Plumbing",
-    "Electrical",
-    "Carpentry",
-    "Painting",
-    "Roofing",
-    "HVAC",
-    "Concrete",
-    "Steel Work",
-    "Tiling",
-    "Glazing",
-    "Scaffolding",
-    "Excavation",
-    "Landscaping",
-    "Flooring",
-    "Demolition",
-    "Insulation",
-    "Drywall",
-    "Masonry",
-    "Welding",
-    "Waterproofing"
+    "Access Control", "Access Floors", "Acoustic Products", "Air Grilles / Louvres", "Aluminium Windows", "Asbestos", "Asphalt Roads & Driveways", "Audiovisual", 
+    "Balustrading", "Blinds & Curtains", "Bricklayers & Blocklayers", "Building Cleaners", "Carpentry", "Carpet & Vinyl", "Caulking", "CCTV", "Ceilings", 
+    "Civil Works", "Communications", "Concrete", "Concrete Cutting", "Concrete Polishing", "Concrete Post-Tension", "Concrete Repair", "Coolrooms", "Cranes", 
+    "Demolition", "Doors & Frames", "Double Glazing", "Earthworks", "Electrical", "Epoxy Floor Coatings", "Facade Construction", "Fencing", "Fire Safety", 
+    "Floor Heating", "Formwork", "Furniture (Commercial)", "Glazed Balustrades", "Glazed Partitions", "Glaziers", "Hardware", "Hydraulic", "Insulation", 
+    "Intercoms", "Joinery", "Landscaping", "Lift", "Light Steel Framing", "Linemarking", "Marble / Granite", "Mechanical", "Metalwork", "Nurse Call", 
+    "Operable Walls", "Painting", "Partitions", "Passive Fire Protection", "Paving", "Pest Control", "Piling", "Pinboards & Whiteboards", "Plasterboard", 
+    "Precast Concrete", "Reinforcement", "Reinforcement Supply", "Relocation", "Resilient Flooring", "Retention Systems", "Roller Doors", "Roof Safety", "Roof Tiling", 
+    "Roofing", "Sanitary Hardware", "Scaffold/ Gantry/ Shoring", "Security", "Security Screens", "Shade/Umbrella/Awnings", "Sheds", "Shotcrete", "Signs / Displays", 
+    "Skylights", "Solar Panels", "Solid Plaster / Render", "Specialist Cladding", "Sports Surfacing & Equipment", "Stainless Steel", "Stairs", "Street Furniture", 
+    "Structural Steel", "Surveying", "Swimming Pools", "Tactile Indicators", "Tanking", "Tiling", "Timber Flooring", "Timber Supply", "Timber Trusses", "Timber Windows", 
+    "Toilet Partitions", "Water Tanks", "Whitegoods", "Window Film", "Workstations"
   ];
 
   useEffect(() => {
