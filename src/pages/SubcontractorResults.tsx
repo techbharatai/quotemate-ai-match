@@ -207,7 +207,7 @@ const SubcontractorResults = () => {
                   </div>
                 </div>
 
-                {trade.trades && trade.trades.length > 0 && (
+                {/*{trade.trades && trade.trades.length > 0 && (
                   <div className="mb-4">
                     <div className="text-sm font-medium text-muted-foreground mb-2">All Required Trades:</div>
                     <div className="flex flex-wrap gap-1">
@@ -218,7 +218,7 @@ const SubcontractorResults = () => {
                       ))}
                     </div>
                   </div>
-                )}
+                )}*/}
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
