@@ -12,30 +12,34 @@ import Subcontractor from "./pages/Subcontractor";
 import Processing from "./pages/Processing";
 import SubcontractorResults from "./pages/SubcontractorResults";
 import NotFound from "./pages/NotFound";
+import BuilderSearchSubs from "./pages/BuilderSearcSubs";
+import UploadsPage from "./pages/UploadsPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/role-selection" element={<RoleSelection />} />
-          <Route path="/builder" element={<Builder />} />
-          <Route path="/builder-dashboard" element={<BuilderDashboard />} />
-          <Route path="/subcontractor" element={<Subcontractor />} />
-          <Route path="/processing" element={<Processing />} />
-          <Route path="/subcontractor-results" element={<SubcontractorResults />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/role-selection" element={<RoleSelection />} />
+            <Route path="/builder" element={<Builder />} />
+            <Route path="/builder-dashboard" element={<BuilderDashboard />} />
+            <Route path="/subcontractor" element={<Subcontractor />} />
+            <Route path="/processing" element={<Processing />} />
+            <Route path="/subcontractor-results" element={<SubcontractorResults />} />
+            <Route path="/search" element={<BuilderSearchSubs />} />
+            <Route path="/upload" element={<UploadsPage/>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 
 export default App;

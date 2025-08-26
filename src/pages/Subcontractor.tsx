@@ -283,14 +283,14 @@ const Subcontractor = () => {
                       <SelectValue placeholder="Select your location" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sydney">Sydney, NSW</SelectItem>
-                      <SelectItem value="melbourne">Melbourne, VIC</SelectItem>
-                      <SelectItem value="brisbane">Brisbane, QLD</SelectItem>
-                      <SelectItem value="perth">Perth, WA</SelectItem>
-                      <SelectItem value="adelaide">Adelaide, SA</SelectItem>
-                      <SelectItem value="canberra">Canberra, ACT</SelectItem>
-                      <SelectItem value="darwin">Darwin, NT</SelectItem>
-                      <SelectItem value="hobart">Hobart, TAS</SelectItem>
+                      <SelectItem value="Sydney, NSW">Sydney, NSW</SelectItem>
+                      <SelectItem value="Melbourne, VIC">Melbourne, VIC</SelectItem>
+                      <SelectItem value="Brisbane, QLD">Brisbane, QLD</SelectItem>
+                      <SelectItem value="Perth, WA">Perth, WA</SelectItem>
+                      <SelectItem value="Adelaide, SA">Adelaide, SA</SelectItem>
+                      <SelectItem value="Canberra, ACT">Canberra, ACT</SelectItem>
+                      <SelectItem value="Darwin, NT">Darwin, NT</SelectItem>
+                      <SelectItem value="Hobart, TAS">Hobart, TAS</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
