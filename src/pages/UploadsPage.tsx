@@ -231,7 +231,7 @@ function UploadsPage() {
           <CardHeader>
             <CardTitle>1. Project Files</CardTitle>
             <CardDescription>
-              Drag & drop project document/images here (PDF, Word, Excel, JPG, PNG, TXT), or manually enter details below.
+              Select your document/images here (PDF, Word, Excel, JPG, PNG, TXT), or manually enter details below.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -242,7 +242,7 @@ function UploadsPage() {
             >
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-sm font-medium text-gray-700">
-                Drag & drop or click to select files
+                 click to select files
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 Supported: PDF, DOC, XLS, JPG, PNG, TXT etc.

@@ -83,7 +83,7 @@ const Builder = () => {
                 <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">
-                    Drag & drop your CSV or Excel file here, or click to browse
+                    Select your CSV or Excel file here, or click to browse
                   </p>
                   <Button 
                     variant="outline"
