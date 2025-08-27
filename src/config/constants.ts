@@ -7,7 +7,7 @@ const CURRENT_ENV = 'production' as const;
 const API_URLS: Record<Environment, string> = {
   local: 'http://localhost:8000',
   ngrok: '', // Replace with your ngrok URL
-  production: 'https://migrate-all-in-one.onrender.com'
+  production: 'https://migrate-all-in-one-1.onrender.com'
 };
 
 // Helper function to get API base URL
