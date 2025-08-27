@@ -32,7 +32,7 @@ const RoleSelection = () => {
               <Button 
                 variant="role"
                 className="w-full"
-                onClick={() => navigate("/builder")}
+                onClick={() => navigate("/upload")}
               >
                 <div className="text-left">
                   <div className="font-semibold text-lg mb-2">Get Started as Builder</div>

@@ -110,7 +110,7 @@ export function BuilderSearchSubs() {
     console.log("[match-subs] Request payload:", cleanPayload);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/match-subs`, {
+      const response = await fetch(`${API_BASE_URL}/sub-file/match-subs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanPayload),

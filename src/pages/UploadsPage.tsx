@@ -371,7 +371,7 @@ function UploadsPage() {
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>2. Results</CardTitle>
+            <CardTitle>Subcontractor Results</CardTitle>
             <CardDescription>
               Matched subcontractors. Use actions to view profile, email RFQ, call, or export results.
             </CardDescription>
@@ -380,6 +380,10 @@ function UploadsPage() {
             {!results || results.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">No results found. Try adjusting project details or adding relevant trades.</p>
+              <Button  className="py-2 mt-4"
+              onClick={() => setStep(0)}>
+                    Back
+                  </Button>
               </div>
             ) : (
               <>

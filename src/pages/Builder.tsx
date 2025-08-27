@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, ArrowLeft, FileText } from "lucide-react";
+import { Upload, ArrowLeft, FileText, ArrowRight } from "lucide-react";
 
 const Builder = () => {
   const [isUploaded, setIsUploaded] = useState(false);
@@ -43,6 +43,18 @@ const Builder = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Role Selection
           </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate("/upload")}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowRight className="w-4 h-4 mr-2" />
+            To Upload Page
+          </Button>
+          
+
+
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Builder Dashboard</p>
           </div>

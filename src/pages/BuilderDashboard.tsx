@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, Phone, Mail, MapPin } from "lucide-react";
+import { ArrowLeft, Search, Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 
 // Mock subcontractor data
 const mockSubcontractors = [
@@ -37,7 +37,16 @@ const BuilderDashboard = () => {
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Upload
+            Back to Upload Database
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate("/upload")}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowRight className="w-4 h-4 mr-2" />
+            To Upload Project Page
           </Button>
           <div className="text-right">
             <h2 className="font-semibold">Welcome back!</h2>

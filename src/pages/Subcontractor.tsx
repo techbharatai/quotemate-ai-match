@@ -108,7 +108,7 @@ const Subcontractor = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/match-projects`, {
+      const response = await fetch(`${API_BASE_URL}/proj-for-sub/match-projects`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
