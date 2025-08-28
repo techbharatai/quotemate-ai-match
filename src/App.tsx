@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import AuthForm from "./components/auth/AuthForm";
-import LoginForm from "./components/auth/LoginForm";
-import SignupForm from "./components/auth/SignupForm";
 import RoleSelection from "./pages/RoleSelection";
 import Builder from "./pages/Builder";
 import BuilderDashboard from "./pages/BuilderDashboard";
@@ -86,8 +84,6 @@ function App() {
               <Route path="/signin" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<AuthForm type="login" />} />
               <Route path="/signup" element={<AuthForm type="signup" />} />
-              <Route path="/auth/login" element={<AuthForm type="login" />} />
-              <Route path="/auth/signup" element={<AuthForm type="signup" />} />
               
               {/* Protected Routes - General */}
               <Route path="/role-selection" element={

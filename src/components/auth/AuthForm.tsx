@@ -34,8 +34,7 @@ const loginSchema = z.object({
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain uppercase, lowercase, and number"),
+    .min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
   userType: z.enum(["builder", "subcontractor"], {
     required_error: "Please select a user type",
@@ -52,12 +51,6 @@ interface AuthFormProps {
   type: 'login' | 'signup';
 }
 
-// Mock users for demo/fallback
-const mockUsers = [
-  { id: "1", email: "builder@example.com", password: "password123", role: "builder" as const, name: "Builder User" },
-  { id: "2", email: "subcontractor@example.com", password: "password123", role: "subcontractor" as const, name: "Subcontractor User" },
-  { id: "3", email: "admin@quotemate.com", password: "admin123", role: "admin" as const, name: "Admin User" },
-];
 
 const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
   const navigate = useNavigate();
@@ -87,7 +80,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
     try {
       console.log('🚀 Sending login request to backend...');
       
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -120,7 +113,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
         // Role-based navigation
         switch (userData.role) {
           case 'builder':
-            navigate('/upload');
+            navigate('/builder-dashboard');
             break;
           case 'subcontractor':
             navigate('/subcontractor');
@@ -158,7 +151,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
     try {
       console.log('🚀 Sending signup request to backend...');
       
-      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,8 +159,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
         body: JSON.stringify({
           email: data.email,
           password: data.password,
-          userType: data.userType,
-          name: data.email.split('@')[0], // Extract name from email as fallback
+          userType: data.userType
         }),
       });
 
@@ -194,50 +186,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
       toast({
         title: "Network Error",
         description: "Could not connect to the server. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Demo Login Function
-  const handleDemoLogin = async (role: "builder" | "subcontractor" | "admin") => {
-    setIsLoading(true);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const demoUser = mockUsers.find(u => u.role === role);
-      if (demoUser) {
-        const { password, ...userWithoutPassword } = demoUser;
-        login(userWithoutPassword, rememberMe);
-        
-        toast({
-          title: "Demo Login",
-          description: `Signed in as demo ${role}`,
-        });
-
-        // Role-based navigation
-        switch (role) {
-          case 'builder':
-            navigate('/upload');
-            break;
-          case 'subcontractor':
-            navigate('/subcontractor');
-            break;
-          case 'admin':
-            navigate('/admin-dashboard');
-            break;
-          default:
-            navigate('/');
-        }
-      }
-    } catch (error) {
-      console.error('Demo login error:', error);
-      toast({
-        title: "Demo Error",
-        description: "Demo login failed",
         variant: "destructive",
       });
     } finally {
@@ -357,40 +305,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or try demo</span>
-                </div>
-              </div>
-
-              {/* Demo Login Buttons */}
-              <div className="grid grid-cols-1 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleDemoLogin("builder")}
-                  disabled={isLoading}
-                >
-                  <Building className="mr-2 h-4 w-4" />
-                  Builder Demo
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleDemoLogin("subcontractor")}
-                  disabled={isLoading}
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Contractor Demo
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleDemoLogin("admin")}
-                  disabled={isLoading}
-                >
-                  <Lock className="mr-2 h-4 w-4" />
-                  Admin Demo
-                </Button>
               </div>
 
               <div className="text-center">
