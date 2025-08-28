@@ -1,74 +1,90 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { Building2, Users, Zap } from "lucide-react";
+import React, { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building, Users, ArrowRight } from 'lucide-react';
 
-const Homepage = () => {
-  const navigate = useNavigate();
+const Homepage: React.FC = () => {
+  const { user, isLoading } = useAuth();
 
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Role-based redirect for authenticated users
+  if (user) {
+    const roleRedirectMap = {
+      builder: '/upload',
+      subcontractor: '/subcontractor',
+      admin: '/admin-dashboard'
+    };
+    
+    return <Navigate to={roleRedirectMap[user.role]} replace />;
+  }
+
+  // Public homepage for non-authenticated users
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="relative">
-        {/* Background gradient */}
-        <div className="absolute inset-0 hero-gradient" />
-        
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Logo/Brand */}
-            <div className="mb-8">
-              <h1 className="text-6xl font-bold mb-4 bg-accent-gradient bg-clip-text text-transparent">
-                QuoteMate
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Smarter Tendering, Faster Quotes.
-              </p>
-            </div>
-
-            {/* Features */}
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <Card className="card-shadow border-border/20">
-                <CardContent className="p-6 text-center">
-                  <Building2 className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Upload Database</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Builders can upload their subcontractor database for instant access
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="card-shadow border-border/20">
-                <CardContent className="p-6 text-center">
-                  <Users className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Register & Match</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Subcontractors can register their details and see matching trades
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="card-shadow border-border/20">
-                <CardContent className="p-6 text-center">
-                  <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">AI-Powered Matching</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Smart matching of trades from preloaded EstimateOne dataset
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* CTA */}
-            <Button 
-              variant="hero" 
-              size="xl"
-              onClick={() => navigate('/signin')}
-              className="text-lg"
-            >
-              Sign In
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center space-y-6 mb-16">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+            Welcome to <span className="text-primary">QuoteMate</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Connect builders with trusted subcontractors. Get accurate quotes and manage projects efficiently.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button size="lg" asChild>
+              <a href="/login">
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <a href="/signup">Sign Up</a>
             </Button>
           </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <Card className="text-center">
+            <CardHeader>
+              <Building className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle>For Builders</CardTitle>
+              <CardDescription>
+                Upload project documents and get accurate quotes from qualified subcontractors
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" asChild>
+                <a href="/login">Builder Login</a>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle>For Subcontractors</CardTitle>
+              <CardDescription>
+                Browse available projects and submit competitive quotes to grow your business
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" asChild>
+                <a href="/login">Subcontractor Login</a>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
