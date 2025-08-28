@@ -84,7 +84,7 @@ const LoginForm: React.FC = () => {
         // ✅ Fixed: Proper role-based navigation
         switch (user.role) {
           case 'builder':
-            navigate('/uploads');
+            navigate('/upload');
             break;
           case 'subcontractor':
             navigate('/subcontractor');
