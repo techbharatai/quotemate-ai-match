@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Upload, FileText, Zap } from "lucide-react";
 import { API_BASE_URL } from "@/config/constants";
+import RFQ from './ReqforQuot'; // Added RFQ import
 
 // Step labels for your UI
 const stepLabels = ["Project Files", "Results"];
@@ -49,6 +50,10 @@ function UploadsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [processedData, setProcessedData] = useState<any>(null);
+
+  // RFQ Modal state - Added these two lines
+  const [selectedSubcontractor, setSelectedSubcontractor] = useState<any>(null);
+  const [isRFQModalVisible, setIsRFQModalVisible] = useState(false);
 
   const handleSyncDatabase = () => {
     navigate("/builder");
@@ -174,8 +179,24 @@ function UploadsPage() {
       }
 
       const data = await response.json();
-      const apiResults = Array.isArray(data) ? data : data.results || [];
-      setResults(apiResults);
+      
+      // NEW: Handle the new response structure with ai_generated_rfqs
+      const apiResults = data.matched_subcontractors || [];
+      const aiRFQs = data.ai_generated_rfqs || [];
+      
+      // Create a map of RFQs by subcontractor_id for easy lookup
+      const rfqMap = {};
+      aiRFQs.forEach(rfq => {
+        rfqMap[rfq.subcontractor_id] = rfq.ai_generated_content;
+      });
+      
+      // Add RFQ content to subcontractor results
+      const resultsWithRFQ = apiResults.map(subcontractor => ({
+        ...subcontractor,
+        ai_generated_content: rfqMap[subcontractor.subcontractor_id] || null
+      }));
+      
+      setResults(resultsWithRFQ);
       setStep(1);
 
     } catch (error) {
@@ -185,6 +206,33 @@ function UploadsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+
+  // Handle opening RFQ modal
+  const handleViewRFQ = (subcontractor: any, rank: number) => {
+    // Convert your result format to SubcontractorData format
+    const subcontractorData = {
+      id: subcontractor.subcontractor_id || subcontractor.id || "unknown",
+      name: subcontractor.company_name || "Unknown Company",
+      email: subcontractor.contact_email || "contact@company.com",
+      phone: subcontractor.contact_phone || "+91-98765-43210",
+      trades: subcontractor.matched_trade ? [subcontractor.matched_trade] : [],
+      rating: subcontractor.rating || 4.5,
+      location: subcontractor.location || location || "Unknown",
+      experience: subcontractor.experience || 10,
+      ai_generated_content: subcontractor.ai_generated_content, // Add this line
+      rank
+    };
+    setSelectedSubcontractor(subcontractorData);
+    setIsRFQModalVisible(true);
+  };
+
+
+  // Handle closing RFQ modal - Added this function
+  const handleCloseRFQ = () => {
+    setIsRFQModalVisible(false);
+    setSelectedSubcontractor(null);
   };
 
   const handleExport = () => {
@@ -502,7 +550,7 @@ function UploadsPage() {
           <CardHeader>
             <CardTitle>Subcontractor Results</CardTitle>
             <CardDescription>
-              Matched subcontractors. Use actions to view profile, email RFQ, call, or export results.
+              Matched subcontractors. Use actions to view RFQ, call 
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -517,7 +565,7 @@ function UploadsPage() {
             ) : (
               <>
                 <div className="space-y-4">
-                  {results.map((r) => (
+                  {results.map((r, index) => (
                                 <Card key={r.subcontractor_id} className="p-4">
                                   <div className="flex justify-between items-start">
                                     <div className="space-y-2 flex-1">
@@ -553,12 +601,15 @@ function UploadsPage() {
                                     </div>
                   
                                     <div className="flex gap-2 ml-4">
-                                      {r.contact_phone && (
-                                        <Button size="sm" variant="outline">
-                                          Call RFQ
+                                      {/* TODO: Change this number (3) to desired number of subcontractors who can view RFQ */}
+                                      {index < 3 && (
+                                        <Button 
+                                          size="sm"
+                                          onClick={() => handleViewRFQ(r, index + 1)}
+                                        >
+                                          View RFQ
                                         </Button>
                                       )}
-                                      <Button size="sm">View RFQ</Button>
                                     </div>
                                   </div>
                                 </Card>
@@ -575,6 +626,16 @@ function UploadsPage() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* RFQ Modal - Added this component */}
+      {selectedSubcontractor && (
+        <RFQ
+          isVisible={isRFQModalVisible}
+          subcontractorData={selectedSubcontractor}
+          onClose={handleCloseRFQ}
+          subcontractorRank={selectedSubcontractor.rank}
+        />
       )}
     </div>
   );
