@@ -34,19 +34,10 @@ const BuilderDashboard = () => {
             variant="ghost" 
             size="sm"
             onClick={() => navigate("/builder")}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-white bg-blue-600 hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Upload Database
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate("/upload")}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowRight className="w-4 h-4 mr-2" />
-            To Upload Project Page
           </Button>
           <div className="text-right">
             <h2 className="font-semibold">Welcome back!</h2>
@@ -59,6 +50,7 @@ const BuilderDashboard = () => {
           <p className="text-lg text-muted-foreground">
             Manage your subcontractor database and find top trades
           </p>
+          
         </div>
 
         {/* Stats Cards */}
@@ -108,12 +100,24 @@ const BuilderDashboard = () => {
 
         {/* Subcontractor Table */}
         <Card className="card-shadow border-border/20 mb-8">
-          <CardHeader>
-            <CardTitle>Your Subcontractor Database</CardTitle>
-            <CardDescription>
-              Overview of your imported subcontractors
-            </CardDescription>
-          </CardHeader>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Your Subcontractor Database</CardTitle>
+              <CardDescription>
+                Overview of your imported subcontractors
+              </CardDescription>
+            </div>
+            <Button  
+              size="lg"
+              onClick={() => navigate("/upload")}
+              className="flex justify-center bg-blue-600 hover:bg-blue-700 text-white" 
+            >
+              Create Variation Request
+            </Button>
+          </div>
+        </CardHeader>
+
           <CardContent>
             <Table>
               <TableHeader>

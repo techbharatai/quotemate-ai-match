@@ -196,7 +196,7 @@ function UploadsPage() {
   return (
     <div className="container mx-auto p-4 max-w-4xl text-black">
       {/* Sync Database Button */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Button 
           onClick={handleSyncDatabase}
           variant="outline"
@@ -204,6 +204,13 @@ function UploadsPage() {
         >
           Sync Database
         </Button>
+        <Button 
+            size="sm"
+            onClick={() => navigate("/builder-dashboard")}
+            className="bg-blue-600 hover:bg-blue-700 text-white" 
+          >
+            Builder Dashboard
+          </Button>
       </div>
 
       {/* Stepper */}
@@ -314,45 +321,167 @@ function UploadsPage() {
             )}
 
             {/* Manual Entry Form - Auto-populated after processing */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">
-                Project Details {processedData?.success ? "(Auto-populated)" : ""}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  placeholder="Project Name"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                />
-                <Input
-                  placeholder="Budget"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                />
-                <Input
-                  placeholder="Trades Required"
-                  value={trade}
-                  onChange={(e) => setTrade(e.target.value)}
-                />
-                <Input
-                  placeholder="Location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-                <Input
-                  placeholder="Deadline"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                />
-              </div>
-              <Textarea
-                placeholder="Project Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
+              <div className="space-y-6"> {/* Increased space between form sections */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Increased gap for better spacing */}
+                  {/* Project Name */}
+                  <div className={`${projectName ? 'space-y-2' : ''}`}> {/* Dynamic spacing */}
+                    {projectName && (
+                      <label htmlFor="projectName" className="block text- font-medium text-white">
+                        Project Name
+                      </label>
+                    )}
+                    <div className="relative">
+                      <Input
+                        id="projectName"
+                        placeholder={projectName ? "Enter project name" : " "}
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                        className={projectName ? "w-full" : "peer pt-6 pb-2"}
+                      />
+                      {!projectName && (
+                        <label 
+                          htmlFor="projectName" 
+                          className="absolute left-3 text-sm text-white/70 transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/70 peer-focus:top-1 peer-focus:text-xs peer-focus:text-white peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-white"
+                        >
+                          Project Name
+                        </label>
+                      )}
+                    </div>
+                  </div>
 
+                  {/* Budget */}
+                  <div className={`${budget ? 'space-y-2' : ''}`}>
+                    {budget && (
+                      <label htmlFor="budget" className="block text-md font-medium text-white">
+                        Budget
+                      </label>
+                    )}
+                    <div className="relative">
+                      <Input
+                        id="budget"
+                        placeholder={budget ? "Enter budget" : " "}
+                        value={budget}
+                        onChange={(e) => setBudget(e.target.value)}
+                        className={budget ? "w-full" : "peer pt-6 pb-2"}
+                      />
+                      {!budget && (
+                        <label 
+                          htmlFor="budget" 
+                          className="absolute left-3 text-sm text-white/70 transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/70 peer-focus:top-1 peer-focus:text-xs peer-focus:text-white peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-white"
+                        >
+                          Budget
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Trade */}
+                  <div className={`${trade ? 'space-y-2' : ''}`}>
+                    {trade && (
+                      <label htmlFor="trade" className="block text-md font-medium text-white">
+                        Trades Required
+                      </label>
+                    )}
+                    <div className="relative">
+                      <Input
+                        id="trade"
+                        placeholder={trade ? "Enter required trades" : " "}
+                        value={trade}
+                        onChange={(e) => setTrade(e.target.value)}
+                        className={trade ? "w-full" : "peer pt-6 pb-2"}
+                      />
+                      {!trade && (
+                        <label 
+                          htmlFor="trade" 
+                          className="absolute left-3 text-sm text-white/70 transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/70 peer-focus:top-1 peer-focus:text-xs peer-focus:text-white peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-white"
+                        >
+                          Trades Required
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className={`${location ? 'space-y-2' : ''}`}>
+                    {location && (
+                      <label htmlFor="location" className="block text-md font-medium text-white">
+                        Location
+                      </label>
+                    )}
+                    <div className="relative">
+                      <Input
+                        id="location"
+                        placeholder={location ? "Enter location" : " "}
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className={location ? "w-full" : "peer pt-6 pb-2"}
+                      />
+                      {!location && (
+                        <label 
+                          htmlFor="location" 
+                          className="absolute left-3 text-sm text-white/70 transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/70 peer-focus:top-1 peer-focus:text-xs peer-focus:text-white peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-white"
+                        >
+                          Location
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Deadline */}
+                  <div className={`${deadline ? 'space-y-2' : ''}`}>
+                    {deadline && (
+                      <label htmlFor="deadline" className="block text-md font-medium text-white">
+                        Deadline
+                      </label>
+                    )}
+                    <div className="relative">
+                      <Input
+                        id="deadline"
+                        placeholder={deadline ? "Enter deadline" : " "}
+                        value={deadline}
+                        onChange={(e) => setDeadline(e.target.value)}
+                        className={deadline ? "w-full" : "peer pt-6 pb-2"}
+                      />
+                      {!deadline && (
+                        <label 
+                          htmlFor="deadline" 
+                          className="absolute left-3 text-sm text-white/70 transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/70 peer-focus:top-1 peer-focus:text-xs peer-focus:text-white peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-white"
+                        >
+                          Deadline
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description with Textarea */}
+                <div className={`${description ? 'space-y-2' : ''}`}>
+                  {description && (
+                    <label htmlFor="description" className="block text-md font-medium text-white">
+                      Project Description
+                    </label>
+                  )}
+                  <div className="relative">
+                    <Textarea
+                      id="description"
+                      placeholder={description ? "Enter project description" : " "}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className={description ? "min-h-[100px] w-full" : "peer pt-6 pb-2 min-h-[100px]"}
+                      rows={4}
+                    />
+                    {!description && (
+                      <label 
+                        htmlFor="description" 
+                        className="absolute left-3 text-sm text-white/70 transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-white/70 peer-focus:top-1 peer-focus:text-xs peer-focus:text-white peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-white"
+                      >
+                        Project Description
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
             {/* Action Buttons */}
             <div className="flex justify-between">
               <Button variant="outline" onClick={handleFormClear}>
@@ -424,19 +553,12 @@ function UploadsPage() {
                                     </div>
                   
                                     <div className="flex gap-2 ml-4">
-                                      {r.contact_email && (
-                                        <Button size="sm" variant="outline">
-                                          Email RFQ
-                                        </Button>
-                                      )}
                                       {r.contact_phone && (
-                                        <Button size="sm" variant="outline"
-                                        //onClick="This feature is work in progress"
-                                        >
-                                          Call
+                                        <Button size="sm" variant="outline">
+                                          Call RFQ
                                         </Button>
                                       )}
-                                      <Button size="sm">View</Button>
+                                      <Button size="sm">View RFQ</Button>
                                     </div>
                                   </div>
                                 </Card>

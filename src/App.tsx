@@ -5,14 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import AuthForm from "./components/auth/AuthForm";
-import RoleSelection from "./pages/RoleSelection";
 import Builder from "./pages/Builder";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import Subcontractor from "./pages/Subcontractor";
 import Processing from "./pages/Processing";
 import SubcontractorResults from "./pages/SubcontractorResults";
 import NotFound from "./pages/NotFound";
-import BuilderSearchSubs from "./pages/BuilderSearcSubs";
 import UploadsPage from "./pages/UploadsPage";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -85,13 +83,6 @@ function App() {
               <Route path="/login" element={<AuthForm type="login" />} />
               <Route path="/signup" element={<AuthForm type="signup" />} />
               
-              {/* Protected Routes - General */}
-              <Route path="/role-selection" element={
-                <RequireAuth>
-                  <RoleSelection />
-                </RequireAuth>
-              } />
-              
               {/* Builder Routes (Admin can also access) */}
               <Route path="/upload" element={
                 <RequireRole allowedRoles={["builder"]}>
@@ -106,11 +97,6 @@ function App() {
               <Route path="/builder-dashboard" element={
                 <RequireRole allowedRoles={["builder"]}>
                   <BuilderDashboard />
-                </RequireRole>
-              } />
-              <Route path="/search" element={
-                <RequireRole allowedRoles={["builder"]}>
-                  <BuilderSearchSubs />
                 </RequireRole>
               } />
               

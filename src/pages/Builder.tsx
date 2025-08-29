@@ -35,29 +35,25 @@ const Builder = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate("/role-selection")}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Role Selection
-          </Button>
-          <Button 
-            variant="ghost" 
             size="sm"
             onClick={() => navigate("/upload")}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-white hover:text-foreground"
           >
             <ArrowRight className="w-4 h-4 mr-2" />
-            To Upload Page
+             To Variation Request Page
           </Button>
           
 
 
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Builder Dashboard</p>
-          </div>
+          
+          <Button 
+            size="sm"
+            onClick={() => navigate("/builder-dashboard")}
+            className="text-white hover:text-foreground"
+          >
+            Builder Dashboard
+          </Button>
+          
         </div>
 
         <div className="text-center mb-12">
@@ -102,7 +98,7 @@ const Builder = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="card-shadow border-border/20 border-primary/30">
+            <Card className="card-shadow">
               <CardHeader className="text-center">
                 <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FileText className="w-8 h-8 text-green-500" />

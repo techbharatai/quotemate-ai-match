@@ -162,16 +162,6 @@ const Subcontractor = () => {
       <div className="container mx-auto max-w-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate("/role-selection")}
-            className="text-muted-foreground hover:text-foreground"
-            disabled={isSubmitting}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Role Selection
-          </Button>
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Subcontractor Registration</p>
           </div>
