@@ -59,7 +59,7 @@ const RFQ: React.FC<RFQProps> = ({
 
       console.log('Sending request:', requestBody);
 
-      const response = await fetch(`${API_BASE_URL}/api/start-call`, {
+      const response = await fetch(`${API_BASE_URL}/retell/start-call`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
