@@ -27,6 +27,25 @@ function exportCSV(data: any[]) {
   document.body.removeChild(link);
 }
 
+// ✅ NEW: Function to get user ID from storage
+const getUserId = () => {
+  const USER_KEY = 'user_data';
+  
+  // Try localStorage first, then sessionStorage
+  let userData = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+  
+  if (userData) {
+    try {
+      const parsedUser = JSON.parse(userData);
+      return parsedUser.id;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
 function UploadsPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -85,53 +104,70 @@ function UploadsPage() {
     });
   };
 
-  const handleProcessFiles = async () => {
-    if (files.length === 0) {
+  // ✅ UPDATED: Modified handleProcessFiles to include user_id
+const handleProcessFiles = async () => {
+  if (files.length === 0) {
       alert("Please select files to process");
       return;
-    }
+  }
 
-    setIsProcessing(true);
+  setIsProcessing(true);
+  
+  const userId = getUserId();
+  console.log('User ID:', userId);
 
-    try {
+  try {
       const formData = new FormData();
       files.forEach(file => {
-        formData.append(`files`, file);
+          formData.append(`files`, file);
       });
+      
+      // Build URL with query parameter
+      const url = userId 
+          ? `${API_BASE_URL}/file/process?user_id=${encodeURIComponent(userId)}`
+          : `${API_BASE_URL}/file/process`;
 
-      const response = await fetch(`${API_BASE_URL}/file/process`, {
-        method: 'POST',
-        body: formData,
+      const response = await fetch(url, {
+          method: 'POST',
+          body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Process response:', data);
       setProcessedData(data);
 
       // Auto-populate form fields from AI-extracted project data
       if (data.success && data.project_extraction?.success && data.project_extraction.project_data) {
-        const extracted = data.project_extraction.project_data;
+          const extracted = data.project_extraction.project_data;
 
-        if (extracted.project_name && !projectName) setProjectName(extracted.project_name);
-        if (extracted.location && !location) setLocation(extracted.location);
-        if (extracted.budget && !budget) setBudget(extracted.budget);
-        if (extracted.all_trades && !trade) setTrade(extracted.all_trades);
-        if (extracted.project_due_date && !deadline) setDeadline(extracted.project_due_date);
-        if (extracted.description && !description) setDescription(extracted.description);
+          if (extracted.project_name && !projectName) setProjectName(extracted.project_name);
+          if (extracted.location && !location) setLocation(extracted.location);
+          if (extracted.budget && !budget) setBudget(extracted.budget);
+          if (extracted.all_trades && !trade) setTrade(extracted.all_trades);
+          if (extracted.project_due_date && !deadline) setDeadline(extracted.project_due_date);
+          if (extracted.description && !description) setDescription(extracted.description);
       }
 
-      alert("Files processed successfully!");
+      let message = "Files processed successfully!";
+      if (data.project_extraction?.supabase_saved) {
+          message += ` Project saved to database with ID: ${data.project_extraction.supabase_id}`;
+      } else if (data.project_extraction?.supabase_error) {
+          message += ` (Database save failed: ${data.project_extraction.supabase_error})`;
+      }
+      
+      alert(message);
 
-    } catch (error: any) {
+  } catch (error: any) {
       console.error('Error processing files:', error);
       alert(`Failed to process files: ${error.message}`);
-    } finally {
+  } finally {
       setIsProcessing(false);
-    }
-  };
+  }
+};
 
   const handleFormClear = () => {
     setProjectId("");
@@ -159,6 +195,7 @@ function UploadsPage() {
       deadline: deadline || null,
       location: location || undefined,
       description: description || undefined,
+      user_id: getUserId(),
     };
 
     const cleanPayload = Object.fromEntries(
@@ -208,7 +245,6 @@ function UploadsPage() {
     }
   };
 
-
   // Handle opening RFQ modal
   const handleViewRFQ = (subcontractor: any, rank: number) => {
     // Convert your result format to SubcontractorData format
@@ -227,7 +263,6 @@ function UploadsPage() {
     setSelectedSubcontractor(subcontractorData);
     setIsRFQModalVisible(true);
   };
-
 
   // Handle closing RFQ modal - Added this function
   const handleCloseRFQ = () => {
@@ -351,7 +386,7 @@ function UploadsPage() {
                     )}
                   </Button>
                 </div>
-                {/* Show processed data status */}
+                {/* ✅ UPDATED: Show processed data status with Supabase info */}
                 {processedData && processedData.success && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <p className="text-green-800 font-medium">✓ Files processed successfully!</p>
@@ -361,6 +396,19 @@ function UploadsPage() {
                     {processedData.project_extraction?.confidence_score && (
                       <p className="text-green-600 text-sm">
                         Confidence: {processedData.project_extraction.confidence_score.toFixed(1)}%
+                      </p>
+                    )}
+                    {processedData.project_extraction?.supabase_saved ? (
+                      <p className="text-green-600 text-sm">
+                        ✅ Project saved to database (ID: {processedData.project_extraction.supabase_id})
+                      </p>
+                    ) : processedData.project_extraction?.supabase_error ? (
+                      <p className="text-orange-600 text-sm">
+                        ⚠️ Database save failed: {processedData.project_extraction.supabase_error}
+                      </p>
+                    ) : (
+                      <p className="text-gray-600 text-sm">
+                        ℹ️ Project not saved to database (no user session)
                       </p>
                     )}
                   </div>
