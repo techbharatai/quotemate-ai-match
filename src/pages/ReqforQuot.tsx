@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config/constants';
 import React, { useRef, useEffect } from 'react';
 
 interface SubcontractorData {
@@ -9,7 +10,7 @@ interface SubcontractorData {
   rating: number;
   location: string;
   experience: number;
-  ai_generated_content?: string; // Add this for the RFQ content
+  ai_generated_content?: string;
 }
 
 interface RFQProps {
@@ -17,13 +18,15 @@ interface RFQProps {
   subcontractorData: SubcontractorData;
   onClose: () => void;
   subcontractorRank: number;
+  builderName?: string; // Make this optional with ?
 }
 
 const RFQ: React.FC<RFQProps> = ({
   isVisible,
   subcontractorData,
   onClose,
-  subcontractorRank
+  subcontractorRank,
+  builderName
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -38,12 +41,12 @@ const RFQ: React.FC<RFQProps> = ({
     if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'hidden';
-    }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'unset';
-    };
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.body.style.overflow = 'unset';
+      };
+    }
   }, [isVisible, onClose]);
 
   // Handle escape key to close modal
@@ -56,12 +59,45 @@ const RFQ: React.FC<RFQProps> = ({
 
     if (isVisible) {
       document.addEventListener('keydown', handleEscapeKey);
-    }
 
-    return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
+      return () => {
+        document.removeEventListener('keydown', handleEscapeKey);
+      };
+    }
   }, [isVisible, onClose]);
+
+  // Handle call function - Send "Test" if builderName is not provided
+  async function handleCall(phoneNumber: string, builderName: string | undefined, rfq: string) {
+    try {
+      const requestBody = {
+        phoneNumber,
+        builderName: builderName || "Test", // Use "Test" if builderName is falsy/undefined
+        rfq
+      };
+
+      console.log('Sending request:', requestBody); // Debug log
+
+      const response = await fetch(`${API_BASE_URL}/api/start-call`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start call');
+      }
+
+      const result = await response.json();
+      console.log('Call started successfully:', result);
+
+      // Optionally close modal after successful call
+      onClose();
+      
+    } catch (error) {
+      console.error('Error starting call:', error);
+      // Handle error (show notification, etc.)
+    }
+  }
 
   if (!isVisible) return null;
 
@@ -88,17 +124,17 @@ const RFQ: React.FC<RFQProps> = ({
       
       {/* Overlay - This is the clickable area outside the modal */}
       <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[1000] p-5">
-        {/* Modal - This has the ref to prevent clicks from closing */}
-        <div 
-          ref={modalRef}
+      {/* Modal - This has the ref to prevent clicks from closing */}
+      <div 
+        ref={modalRef}
           className="bg-card rounded-xl w-[90%] max-w-[1000px] max-h-[90vh] overflow-y-auto shadow-2xl rfq-modal-animate border border-border"
-        >
+      >
           {/* Header */}
           <div className="flex justify-between items-start p-6 pb-4 border-b border-border sticky top-0 bg-card rounded-t-xl">
             <div>
               <h2 className="text-2xl font-semibold text-foreground m-0">
-                Request for Quotation for Subcontractor - {subcontractorData.name}
-              </h2>
+              Request for Quotation for Subcontractor - {subcontractorData.name}
+            </h2>
             </div>
             <button 
               onClick={onClose}
@@ -120,17 +156,22 @@ const RFQ: React.FC<RFQProps> = ({
           {/* Footer with Action Buttons */}
           <div className="px-6 py-5 border-t border-border bg-muted/50 rounded-b-xl sticky bottom-0">
             <div className="flex gap-3 justify-end flex-wrap">
-              <button 
-                onClick={onClose}
+            <button
+              onClick={onClose}
                 className="px-5 py-2.5 rounded-lg font-medium text-sm cursor-pointer transition-all duration-200 bg-secondary text-secondary-foreground border-none hover:bg-secondary/80"
-              >
-                Close
-              </button>
-              <button 
-                className="px-5 py-2.5 rounded-lg font-medium text-sm cursor-pointer transition-all duration-200 bg-card text-foreground border border-border hover:bg-muted"
-              >
-                Call for Quotation
-              </button>
+            >
+              Close
+            </button>
+            <button
+              onClick={() => handleCall(
+                subcontractorData.phone,
+                builderName, // This can be undefined
+                subcontractorData.ai_generated_content || "RFQ details to be discussed"
+              )}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Call for Quotation
+            </button>
             </div>
           </div>
         </div>

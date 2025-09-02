@@ -98,6 +98,34 @@ const BuilderDashboard = () => {
           </Card>
         </div>
 
+        {/*contacted sub  */}
+        <Card className="card-shadow border-border/20 mb-8">
+          <CardHeader>
+            <CardTitle>Contacted Subcontractors </CardTitle>
+            <CardDescription>
+              Overview of your contacted subcontractors related to which project
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Sub Name</TableHead>
+                  <TableHead>Project  contacted for </TableHead>
+                  <TableHead>Current status</TableHead>
+                  <TableHead>Transcript</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                insert data here
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+
+
+
         {/* Subcontractor Table */}
         <Card className="card-shadow border-border/20 mb-8">
         <CardHeader>
@@ -108,6 +136,13 @@ const BuilderDashboard = () => {
                 Overview of your imported subcontractors
               </CardDescription>
             </div>
+            <Button  
+              size="lg"
+              onClick={() => navigate("/builder-dashboard")}
+              className="flex justify-center bg-blue-600 hover:bg-blue-700 text-white" 
+            >
+              See Contacted Subcontractors
+            </Button>
             <Button  
               size="lg"
               onClick={() => navigate("/upload")}

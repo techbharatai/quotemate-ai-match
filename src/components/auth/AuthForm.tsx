@@ -32,6 +32,7 @@ const loginSchema = z.object({
 });
 
 const signupSchema = z.object({
+  name: z.string().min(3, "Name is Required"),
   email: z.string().email("Invalid email address"),
   password: z.string()
     .min(8, "Password must be at least 8 characters"),
@@ -70,7 +71,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
 
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { email: "", password: "", confirmPassword: "", userType: undefined }
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "", userType: undefined }
   });
 
   // ✅ Real API Login Function
@@ -157,6 +158,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          name: data.name,
           email: data.email,
           password: data.password,
           userType: data.userType
@@ -344,6 +346,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
         <CardContent className="space-y-6">
           <form onSubmit={signupForm.handleSubmit(handleRealSignup)} className="space-y-4">
             {/* Email */}
+            <div className="space-y-2">
+            {/* Name */}
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your full name"
+                {...signupForm.register("name")}
+              />
+              {signupForm.formState.errors.name && (
+                <p className="text-red-500">{signupForm.formState.errors.name.message}</p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
