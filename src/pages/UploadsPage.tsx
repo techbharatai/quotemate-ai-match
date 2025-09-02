@@ -7,6 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, Upload, FileText, Zap } from "lucide-react";
 import { API_BASE_URL } from "@/config/constants";
 import RFQ from './ReqforQuot'; // Added RFQ import
+import { useProject } from "@/context/ProjectContext";
+
+
 
 // Step labels for your UI
 const stepLabels = ["Project Files", "Results"];
@@ -50,6 +53,7 @@ function UploadsPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
+    const { setProjectInfo } = useProject();
   // Project Input
   const [projectId, setProjectId] = useState("");
   const [projectName, setProjectName] = useState("");
@@ -105,69 +109,70 @@ function UploadsPage() {
   };
 
   // ✅ UPDATED: Modified handleProcessFiles to include user_id
-const handleProcessFiles = async () => {
-  if (files.length === 0) {
+  const handleProcessFiles = async () => {
+    if (files.length === 0) {
       alert("Please select files to process");
       return;
-  }
-
-  setIsProcessing(true);
+    }
   
-  const userId = getUserId();
-  console.log('User ID:', userId);
-
-  try {
+    setIsProcessing(true);
+    const userId = getUserId();
+    console.log('User ID:', userId);
+  
+    try {
       const formData = new FormData();
       files.forEach(file => {
-          formData.append(`files`, file);
+        formData.append(`files`, file);
       });
       
-      // Build URL with query parameter
       const url = userId 
-          ? `${API_BASE_URL}/file/process?user_id=${encodeURIComponent(userId)}`
-          : `${API_BASE_URL}/file/process`;
-
+        ? `${API_BASE_URL}/file/process?user_id=${encodeURIComponent(userId)}`
+        : `${API_BASE_URL}/file/process`;
+  
       const response = await fetch(url, {
-          method: 'POST',
-          body: formData,
+        method: 'POST',
+        body: formData,
       });
-
+  
       if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const data = await response.json();
       console.log('Process response:', data);
       setProcessedData(data);
-
+  
       // Auto-populate form fields from AI-extracted project data
       if (data.success && data.project_extraction?.success && data.project_extraction.project_data) {
-          const extracted = data.project_extraction.project_data;
-
-          if (extracted.project_name && !projectName) setProjectName(extracted.project_name);
-          if (extracted.location && !location) setLocation(extracted.location);
-          if (extracted.budget && !budget) setBudget(extracted.budget);
-          if (extracted.all_trades && !trade) setTrade(extracted.all_trades);
-          if (extracted.project_due_date && !deadline) setDeadline(extracted.project_due_date);
-          if (extracted.description && !description) setDescription(extracted.description);
+        const extracted = data.project_extraction.project_data;
+  
+        if (extracted.project_name && !projectName) setProjectName(extracted.project_name);
+        if (extracted.location && !location) setLocation(extracted.location);
+        if (extracted.budget && !budget) setBudget(extracted.budget);
+        if (extracted.all_trades && !trade) setTrade(extracted.all_trades);
+        if (extracted.project_due_date && !deadline) setDeadline(extracted.project_due_date);
+        if (extracted.description && !description) setDescription(extracted.description);
       }
-
+  
+      // Call the function to store project ID in context
+      handleFileProcessingSuccess(data);
+  
       let message = "Files processed successfully!";
       if (data.project_extraction?.supabase_saved) {
-          message += ` Project saved to database with ID: ${data.project_extraction.supabase_id}`;
+        message += ` Project saved to database with ID: ${data.project_extraction.supabase_id}`;
       } else if (data.project_extraction?.supabase_error) {
-          message += ` (Database save failed: ${data.project_extraction.supabase_error})`;
+        message += ` (Database save failed: ${data.project_extraction.supabase_error})`;
       }
       
       alert(message);
-
-  } catch (error: any) {
+  
+    } catch (error: any) {
       console.error('Error processing files:', error);
       alert(`Failed to process files: ${error.message}`);
-  } finally {
+    } finally {
       setIsProcessing(false);
-  }
-};
+    }
+  }; 
 
   const handleFormClear = () => {
     setProjectId("");
@@ -181,6 +186,16 @@ const handleProcessFiles = async () => {
     setFilePreviews([]);
     setProcessedData(null);
   };
+
+  const handleFileProcessingSuccess = (result) => {
+    if (result.project_extraction?.supabase_saved) {
+      setProjectInfo({
+        projectId: result.project_extraction.supabase_id,
+        projectData: result.project_extraction.project_data
+      });
+    }
+  };
+
 
   // --- REAL SEARCH FUNCTION ---
   const handleSearchSubcontractors = async () => {

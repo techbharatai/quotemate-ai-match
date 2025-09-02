@@ -1,5 +1,8 @@
+// ReqforQuot.tsx
 import { API_BASE_URL } from '@/config/constants';
 import React, { useRef, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 
 interface SubcontractorData {
   id: string;
@@ -18,7 +21,7 @@ interface RFQProps {
   subcontractorData: SubcontractorData;
   onClose: () => void;
   subcontractorRank: number;
-  builderName?: string; // Make this optional with ?
+  rfqId?: string; // Only need rfqId as prop now
 }
 
 const RFQ: React.FC<RFQProps> = ({
@@ -26,56 +29,35 @@ const RFQ: React.FC<RFQProps> = ({
   subcontractorData,
   onClose,
   subcontractorRank,
-  builderName
+  rfqId
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // Get builder info from AuthContext
+  const { user } = useAuth();
+  const builderId = user?.id || "";
+  const builderName = user?.name || user?.email || "Unknown Builder";
+  
+  // Get project info from ProjectContext
+  const { projectId } = useProject();
 
-  // Handle click outside to close modal
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
+  // ... existing useEffect hooks ...
 
-    if (isVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'hidden';
-
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.body.style.overflow = 'unset';
-      };
-    }
-  }, [isVisible, onClose]);
-
-  // Handle escape key to close modal
-  useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isVisible) {
-      document.addEventListener('keydown', handleEscapeKey);
-
-      return () => {
-        document.removeEventListener('keydown', handleEscapeKey);
-      };
-    }
-  }, [isVisible, onClose]);
-
-  // Handle call function - Send "Test" if builderName is not provided
-  async function handleCall(phoneNumber: string, builderName: string | undefined, rfq: string) {
+  // Updated handleCall function
+  async function handleCall(phoneNumber: string, builderName: string, rfq: string) {
     try {
       const requestBody = {
         phoneNumber,
-        builderName: builderName || "Test", // Use "Test" if builderName is falsy/undefined
-        rfq
+        builderName,
+        rfq,
+        
+        // All tracking data from contexts
+        project_id: projectId,
+        subcontractor_id: subcontractorData.id,
+        builder_id: builderId
       };
 
-      console.log('Sending request:', requestBody); // Debug log
+      console.log('Sending request:', requestBody);
 
       const response = await fetch(`${API_BASE_URL}/api/start-call`, {
         method: "POST",
@@ -89,13 +71,9 @@ const RFQ: React.FC<RFQProps> = ({
 
       const result = await response.json();
       console.log('Call started successfully:', result);
-
-      // Optionally close modal after successful call
       onClose();
-      
     } catch (error) {
       console.error('Error starting call:', error);
-      // Handle error (show notification, etc.)
     }
   }
 

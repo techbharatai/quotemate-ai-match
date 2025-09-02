@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Phone, Mail, MapPin, ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { API_BASE_URL } from "@/config/constants";
+
 
 // Mock subcontractor data
 const mockSubcontractors = [
@@ -17,12 +20,120 @@ const mockSubcontractors = [
   { id: 8, name: "Concrete Solutions", trade: "Concrete", location: "Brisbane", contact: "+61 7 3555 0130", email: "info@concretesolutions.com.au" },
 ];
 
+interface ContactedSubcontractor {
+  id: string;
+  call_id: string;
+  status: string;
+  created_at: string;
+  rfq: string;
+  transcript?: string;
+  subcontractor: {
+    id: string;
+    company?: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    trades?: string[];
+    rating?: number;
+    experience?: number;
+  };
+  project: {
+    id: string;
+    project_name: string;
+    budget?: string;
+    trades: string;
+    location?: string;
+    description?: string;
+    
+  };
+}
+
+
 const BuilderDashboard = () => {
   const [showTrades, setShowTrades] = useState(false);
+  const [showContactedSubs, setShowContactedSubs] = useState(false);
+  const [contactedSubcontractors, setContactedSubcontractors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Modal states
+  const [selectedTranscript, setSelectedTranscript] = useState<string>('');
+  const [showTranscriptModal, setShowTranscriptModal] = useState(false);
+  const [selectedSubcontractor, setSelectedSubcontractor] = useState<any>(null);
+  const [showSubcontractorModal, setShowSubcontractorModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  
   const navigate = useNavigate();
-
+  const { user } = useAuth();
+  
   const handleFindTrades = () => {
     setShowTrades(true);
+    setShowContactedSubs(false);
+  };
+
+  const fetchSubcontractorDetails = async (subcontractorId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/retell/subcontractor/${subcontractorId}`);
+      if (!response.ok) throw new Error('Failed to fetch subcontractor details');
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Error fetching subcontractor details:', error);
+      return null;
+    }
+  };
+  
+  
+  const fetchProjectDetails = async (projectId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/retell/project/${projectId}`);
+      if (!response.ok) throw new Error('Failed to fetch project details');
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+      return null;
+    }
+  };
+  
+  const handleSubcontractorClick = async (subcontractor: any) => {
+    const details = await fetchSubcontractorDetails(subcontractor.id);
+    setSelectedSubcontractor(details || subcontractor);
+    setShowSubcontractorModal(true);
+  };
+  
+  const handleProjectClick = async (project: any) => {
+    const details = await fetchProjectDetails(project.id);
+    setSelectedProject(details || project);
+    setShowProjectModal(true);
+  };
+  
+
+  const handleShowContactedSubcontractors = async () => {
+    if (!user) {
+      console.error('No user found');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/retell/builder/${user.id}/contacted-subcontractors`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch contacted subcontractors');
+      }
+
+      const result = await response.json();
+      setContactedSubcontractors(result.data);
+      setShowContactedSubs(true);
+      setShowTrades(false);
+    } catch (error) {
+      console.error('Error fetching contacted subcontractors:', error);
+      alert('Failed to load contacted subcontractors');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -99,33 +210,88 @@ const BuilderDashboard = () => {
         </div>
 
         {/*contacted sub  */}
-        <Card className="card-shadow border-border/20 mb-8">
-          <CardHeader>
-            <CardTitle>Contacted Subcontractors </CardTitle>
-            <CardDescription>
-              Overview of your contacted subcontractors related to which project
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Sub Name</TableHead>
-                  <TableHead>Project  contacted for </TableHead>
-                  <TableHead>Current status</TableHead>
-                  <TableHead>Transcript</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                insert data here
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-
-
-
+          {showContactedSubs && (
+          <Card className="card-shadow border-border/20 mb-8">
+            <CardHeader>
+              <CardTitle>Contacted Subcontractors</CardTitle>
+              <CardDescription>
+                All RFQ calls made to subcontractors with status and details
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : contactedSubcontractors.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No contacted subcontractors found
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Subcontractor Name</TableHead>
+                        <TableHead>Project Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Transcript</TableHead>
+                        
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {contactedSubcontractors.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              <button
+                                className="text-left hover:text-blue-600 underline font-medium"
+                                onClick={() => handleSubcontractorClick(item.subcontractors)}
+                              >
+                                {item.subcontractors?.name || 'Unknown'}
+                              </button>
+                              <br />
+                              <small className="text-gray-500">ID: {item.subcontractor_id}</small>
+                            </TableCell>
+                            <TableCell>
+                              <button
+                                className="text-left hover:text-blue-600 underline font-medium"
+                                onClick={() => handleProjectClick(item.projects)}
+                              >
+                                {item.projects?.project_name || 'Unknown Project'}
+                              </button>
+                              <br />
+                              <small className="text-gray-500">ID: {item.project_id}</small>
+                            </TableCell>
+                            <TableCell>{item.status}</TableCell>
+                            <TableCell>{new Date(item.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <div className="max-w-xs">
+                                {item.transcript ? (
+                                  <button
+                                    className="text-left hover:text-blue-600 underline"
+                                    onClick={() => {
+                                      setSelectedTranscript(item.transcript);
+                                      setShowTranscriptModal(true);
+                                    }}
+                                  >
+                                    {item.transcript.length > 100 
+                                      ? `${item.transcript.substring(0, 100)}...` 
+                                      : item.transcript
+                                    }
+                                  </button>
+                                ) : (
+                                  <span className="text-gray-400 italic">No transcript available</span>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          )}
         {/* Subcontractor Table */}
         <Card className="card-shadow border-border/20 mb-8">
         <CardHeader>
@@ -138,7 +304,7 @@ const BuilderDashboard = () => {
             </div>
             <Button  
               size="lg"
-              onClick={() => navigate("/builder-dashboard")}
+              onClick={handleShowContactedSubcontractors}
               className="flex justify-center bg-blue-600 hover:bg-blue-700 text-white" 
             >
               See Contacted Subcontractors
@@ -246,8 +412,94 @@ const BuilderDashboard = () => {
             )}
           </CardContent>
         </Card>
+                      {/* Transcript Modal */}
+                            {showTranscriptModal && (
+                              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className="bg-background p-6 rounded-lg max-w-2xl max-h-96 overflow-y-auto">
+                                  <h3 className="text-lg text-muted-foreground font-semibold mb-4">Call Transcript</h3>
+                                  <p className="text-sm whitespace-pre-wrap">{selectedTranscript}</p>
+                                  <button
+                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    onClick={() => setShowTranscriptModal(false)}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                        {/* Subcontractor Details Modal */}
+                            {showSubcontractorModal && selectedSubcontractor && (
+                              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className="bg-background p-6 rounded-lg max-w-lg max-h-96 overflow-y-auto">
+                                  <h3 className="text-lg text-muted-foreground font-semibold mb-4">Subcontractor Details</h3>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <strong>ID:</strong> {selectedSubcontractor.id || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Name:</strong> {selectedSubcontractor.name || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Company:</strong> {selectedSubcontractor.company || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Budget:</strong> {selectedSubcontractor.budget || 'N/A'}
+                                    </div>
+                                    {selectedSubcontractor.description && (
+                                      <div>
+                                        <strong>Description:</strong>
+                                        <p className="mt-1 text-sm text-muted-foreground max-h-32 overflow-y-auto whitespace-pre-wrap">
+                                          {selectedSubcontractor.description}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <button
+                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    onClick={() => setShowSubcontractorModal(false)}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+
+                        {/* Project Details Modal */}
+                            {showProjectModal && selectedProject && (
+                              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className="bg-background p-6 rounded-lg max-w-2xl max-h-96 overflow-y-auto">
+                                  <h3 className="text-lg text-muted-foreground font-semibold mb-4">Project Details</h3>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <strong>Project Name:</strong> {selectedProject.project_name || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Budget:</strong> {selectedProject.budget || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Location:</strong> {selectedProject.location || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Trades:</strong> {selectedProject.trades || 'N/A'}
+                                    </div>
+                                    <div>
+                                      <strong>Description:</strong> {selectedProject.description || 'N/A'}
+                                    </div>
+                                  </div>
+                                  <button
+                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    onClick={() => setShowProjectModal(false)}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
       </div>
-    </div>
+    </div>    
   );
 };
 

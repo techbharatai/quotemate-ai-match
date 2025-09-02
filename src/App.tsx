@@ -13,6 +13,7 @@ import SubcontractorResults from "./pages/SubcontractorResults";
 import NotFound from "./pages/NotFound";
 import UploadsPage from "./pages/UploadsPage";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ProjectProvider } from "./context/ProjectContext";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ function App() {
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
+            <ProjectProvider>
             <Routes>
               {/* ✅ Updated: Homepage with role-based redirect */}
               <Route path="/" element={<Homepage />} />
@@ -180,6 +182,7 @@ function App() {
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </ProjectProvider>
           </AuthProvider>
         </BrowserRouter>
         <Toaster />
