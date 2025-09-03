@@ -49,6 +49,8 @@ const getUserId = () => {
   return null;
 };
 
+
+
 function UploadsPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -68,6 +70,45 @@ function UploadsPage() {
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [isDragActive, setIsDragActive] = useState(false);
+
+// Drag and Drop handlers
+const handleDragEnter = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsDragActive(true);
+};
+
+const handleDragLeave = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsDragActive(false);
+};
+
+const handleDragOver = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+};
+
+const handleDrop = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setIsDragActive(false);
+  
+  const droppedFiles = Array.from(e.dataTransfer.files);
+  if (droppedFiles.length > 0) {
+    // Take only the first file for single file upload
+    const syntheticEvent = {
+      target: {
+        files: [droppedFiles[0]] // Only first file
+      }
+    } as any; // This fixes the red line
+    
+    handleFileChange(syntheticEvent);
+  }
+};
+
+
   // Results
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -82,11 +123,15 @@ function UploadsPage() {
     navigate("/builder");
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files ?? []);
+    
+    if (selectedFiles.length === 0) return;
+    
     setFiles(selectedFiles);
     setFilePreviews([]);
 
+    // Generate previews
     selectedFiles.forEach((file, i) => {
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
@@ -106,7 +151,65 @@ function UploadsPage() {
         });
       }
     });
+
+    // ✅ NEW: Process files automatically using the selected files directly
+    await processFilesAutomatically(selectedFiles);
   };
+
+// New helper function for automatic processing
+const processFilesAutomatically = async (filesToProcess: File[]) => {
+  setIsProcessing(true);
+  const userId = getUserId();
+  console.log('Auto-processing files, User ID:', userId);
+
+  try {
+    const formData = new FormData();
+    filesToProcess.forEach(file => {
+      formData.append(`files`, file);
+    });
+    
+    const url = userId 
+      ? `${API_BASE_URL}/file/process?user_id=${encodeURIComponent(userId)}`
+      : `${API_BASE_URL}/file/process`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Auto-process response:', data);
+    setProcessedData(data);
+
+    // Auto-populate form fields from AI-extracted project data
+    if (data.success && data.project_extraction?.success && data.project_extraction.project_data) {
+      const extracted = data.project_extraction.project_data;
+
+      // Always overwrite existing data with newly extracted data
+      if (extracted.project_name) setProjectName(extracted.project_name);
+      if (extracted.location) setLocation(extracted.location);
+      if (extracted.budget) setBudget(extracted.budget);
+      if (extracted.all_trades) setTrade(extracted.all_trades);
+      if (extracted.project_due_date) setDeadline(extracted.project_due_date);
+      if (extracted.description) setDescription(extracted.description);
+    }
+
+
+    handleFileProcessingSuccess(data);
+
+  } catch (error: any) {
+    console.error('Error auto-processing files:', error);
+    alert(`Failed to process files automatically: ${error.message}`);
+  } finally {
+    setIsProcessing(false);
+  }
+};
+
+
 
   // ✅ UPDATED: Modified handleProcessFiles to include user_id
   const handleProcessFiles = async () => {
@@ -340,14 +443,26 @@ function UploadsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* File Upload Area */}
+            {/* File Upload Area with Drag and Drop + Click to Select */}
             <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
+                isDragActive 
+                  ? 'border-blue-400 bg-blue-50 scale-105' 
+                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+              }`}
               onClick={() => fileInputRef.current?.click()}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
             >
-              <Upload className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm font-medium text-gray-700">
-                 click to select files
+              <Upload className={`mx-auto h-12 w-12 transition-colors ${
+                isDragActive ? 'text-blue-400' : 'text-gray-400'
+              }`} />
+              <p className={`mt-2 text-sm font-medium transition-colors ${
+                isDragActive ? 'text-blue-700' : 'text-gray-700'
+              }`}>
+                {isDragActive ? 'Drop files here' : 'Drag and drop files here or click to select'}
               </p>
               <p className="text-sm text-gray-500 mt-1">
                 Supported: PDF, DOC, XLS, JPG, PNG, TXT etc.
@@ -366,70 +481,87 @@ function UploadsPage() {
             {files.length > 0 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Files to be Processed:</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {files.map((file, i) => (
-                    <div key={i} className="border rounded-lg p-3 flex items-center space-x-3">
-                      {filePreviews[i] ? (
-                        <img src={filePreviews[i]} alt="Preview" className="w-12 h-12 object-cover rounded" />
-                      ) : (
-                        <FileText className="w-12 h-12 text-gray-400" />
-                      )}
-                      <div className="flex-1">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
-                        <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
-                      </div>
+                
+                {/* Flex container for side-by-side layout */}
+                <div className="flex gap-6">
+                  {/* File Previews - Left Side */}
+                  <div className="flex-1">
+                    <div className="grid grid-cols-1 gap-4">
+                      {files.map((file, i) => (
+                        <div key={i} className="border rounded-lg p-3 flex items-center space-x-3">
+                          {filePreviews[i] ? (
+                            <img src={filePreviews[i]} alt="Preview" className="w-12 h-12 object-cover rounded" />
+                          ) : (
+                            <FileText className="w-12 h-12 text-gray-400" />
+                          )}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium truncate">{file.name}</p>
+                            <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                          
+                          {/* Status indicator in the same row */}
+                          <div className="flex items-center">
+                            {isProcessing ? (
+                              <div className="flex items-center text-blue-600">
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <span className="text-xs">Processing...</span>
+                              </div>
+                            ) : processedData && processedData.success ? (
+                              <div className="flex items-center text-green-600">
+                                <span className="text-xs">✓ Processed</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-gray-500">
+                                <span className="text-xs">Ready</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {/* Process Files Button */}
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleProcessFiles} 
-                    disabled={isProcessing}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="mr-2 h-4 w-4" />
-                        Process Files
-                      </>
+                  </div>
+
+                  {/* Overall status message card - Right Side */}
+                  <div className="w-80 flex-shrink-0">
+                    {processedData && processedData.success && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-2 sticky top-2">
+                        <p className="text-green-600 text-xs mt-1">
+                          ✓ file processed successfully!
+                        </p>
+                        {processedData.project_extraction?.confidence_score && (
+                          <p className="text-green-600 text-xs">
+                            Confidence: {processedData.project_extraction.confidence_score.toFixed(1)}%
+                          </p>
+                        )}
+                        {processedData.project_extraction?.supabase_saved ? (
+                          <p className="text-blue-600 text-xs">
+                            ✅ Project saved to database (ID: {processedData.project_extraction.supabase_id})
+                          </p>
+                        ) : processedData.project_extraction?.supabase_error ? (
+                          <p className="text-orange-600 text-sm">
+                            ⚠️ Database save failed: {processedData.project_extraction.supabase_error}
+                          </p>
+                        ) : (
+                          <p className="text-gray-600 text-sm">
+                            ℹ️ Project not saved to database (no user session)
+                          </p>
+                        )}
+                      </div>
                     )}
-                  </Button>
-                </div>
-                {/* ✅ UPDATED: Show processed data status with Supabase info */}
-                {processedData && processedData.success && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-green-800 font-medium">✓ Files processed successfully!</p>
-                    <p className="text-green-600 text-sm mt-1">
-                      Extracted data has been auto-populated in the form below.
-                    </p>
-                    {processedData.project_extraction?.confidence_score && (
-                      <p className="text-green-600 text-sm">
-                        Confidence: {processedData.project_extraction.confidence_score.toFixed(1)}%
-                      </p>
-                    )}
-                    {processedData.project_extraction?.supabase_saved ? (
-                      <p className="text-green-600 text-sm">
-                        ✅ Project saved to database (ID: {processedData.project_extraction.supabase_id})
-                      </p>
-                    ) : processedData.project_extraction?.supabase_error ? (
-                      <p className="text-orange-600 text-sm">
-                        ⚠️ Database save failed: {processedData.project_extraction.supabase_error}
-                      </p>
-                    ) : (
-                      <p className="text-gray-600 text-sm">
-                        ℹ️ Project not saved to database (no user session)
-                      </p>
+                    
+                    {/* Show placeholder when no processed data */}
+                    {!processedData && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                        <p className="text-gray-500 text-sm">
+                          Processing status will appear here
+                        </p>
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             )}
+
 
             {/* Manual Entry Form - Auto-populated after processing */}
               <div className="space-y-6"> {/* Increased space between form sections */}
@@ -628,7 +760,7 @@ function UploadsPage() {
             ) : (
               <>
                 <div className="space-y-4">
-                  {results.map((r, index) => (
+                  {results.slice(0, 5).map((r, index) => (             /*show only top 5 results here */ 
                                 <Card key={r.subcontractor_id} className="p-4">
                                   <div className="flex justify-between items-start">
                                     <div className="space-y-2 flex-1">
